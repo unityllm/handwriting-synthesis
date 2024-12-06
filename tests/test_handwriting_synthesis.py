@@ -4,6 +4,8 @@ from handwriting_synthesis.hand import Hand
 from handwriting_synthesis.rnn import rnn
 from handwriting_synthesis.data_frame import DataFrame
 import os
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
 
 class TestHandwritingSynthesis(unittest.TestCase):
 
