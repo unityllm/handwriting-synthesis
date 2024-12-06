@@ -10,7 +10,7 @@ setup(
     author='sjvasquez',
     description='A package for handwriting synthesis using recurrent neural networks.',
     packages=find_packages(),
-    install_requires=requirements,
+    install_requires=requirements + ['gradio'],
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
