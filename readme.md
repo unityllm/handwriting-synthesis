@@ -1,11 +1,22 @@
 ![](img/banner.svg)
 # Handwriting Synthesis
-Implementation of the handwriting synthesis experiments in the paper <a href="https://arxiv.org/abs/1308.0850">Generating Sequences with Recurrent Neural Networks</a> by Alex Graves.  The implementation closely follows the original paper, with a few slight deviations, and the generated samples are of similar quality to those presented in the paper.
+
+This package provides tools for synthesizing handwriting using recurrent neural networks. It includes functionalities for data processing, model training, and handwriting generation. The implementation closely follows the original paper <a href="https://arxiv.org/abs/1308.0850">Generating Sequences with Recurrent Neural Networks</a> by Alex Graves, with a few slight deviations, and the generated samples are of similar quality to those presented in the paper.
 
 Web demo is available <a href="https://seanvasquez.com/handwriting-generation/">here</a>.
 
+## Installation
+
+To install the package, use pip:
+
+```bash
+pip install handwriting-synthesis
+
 ## Usage
+
 ```python
+from handwriting_synthesis.hand import Hand
+
 lines = [
     "Now this is a story all about how",
     "My life got flipped turned upside down",
@@ -29,7 +40,7 @@ hand.write(
 ```
 ![](img/usage_demo.svg)
 
-Currently, the `Hand` class must be imported from `demo.py`.  If someone would like to package this project to make it more usable, please [contribute](#contribute).
+The `Hand` class is now part of the `handwriting_synthesis` package and can be imported from `handwriting_synthesis.hand`.
 
 A pretrained model is included, but if you'd like to train your own, read <a href='https://github.com/sjvasquez/handwriting-synthesis/tree/master/data/raw'>these instructions</a>.
 

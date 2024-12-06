@@ -206,7 +206,7 @@ class rnn(TFBaseModel):
         return self.loss
 
 
-if __name__ == '__main__':
+def main():
     dr = DataReader(data_dir='data/processed/')
 
     nn = rnn(
@@ -233,3 +233,6 @@ if __name__ == '__main__':
         attention_mixture_components=10
     )
     nn.fit()
+
+if __name__ == '__main__':
+    main()
