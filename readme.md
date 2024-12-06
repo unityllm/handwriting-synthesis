@@ -12,6 +12,31 @@ To install the package, use pip:
 ```bash
 pip install handwriting-synthesis
 
+This package requires additional dependencies for the CLI and Gradio interface. You can install them using:
+
+```bash
+pip install gradio argparse
+
+## Command-Line Interface
+
+You can use the command-line interface to generate handwriting from text input. Here's how:
+
+```bash
+python -m handwriting_synthesis.cli "Your text here" --output output.svg --biases 0.5 --styles 9 --stroke_colors black --stroke_widths 2
+```
+
+This command will generate an SVG file named `output.svg` with the specified text and parameters.
+
+## Gradio Interface
+
+To use the Gradio interface, run the following command:
+
+```bash
+python -m gradio.app
+```
+
+This will start a web interface where you can input text and customize parameters like styles, biases, stroke colors, and widths to generate handwriting.
+
 ## Usage
 
 ```python
