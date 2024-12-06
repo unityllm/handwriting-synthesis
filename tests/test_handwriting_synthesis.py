@@ -4,6 +4,7 @@ from handwriting_synthesis.hand import Hand
 from handwriting_synthesis.rnn import rnn
 from handwriting_synthesis.data_frame import DataFrame
 import os
+import tensorflow as tf
 
 class TestHandwritingSynthesis(unittest.TestCase):
 
@@ -48,6 +49,9 @@ class TestHandwritingSynthesis(unittest.TestCase):
         try:
             self.rnn_model.fit()
             trained = True
+        except tf.errors.OpError as e:
+            print(f"Training failed with TensorFlow exception: {e}")
+            trained = False
         except Exception as e:
             print(f"Training failed with exception: {e}")
             trained = False
@@ -59,6 +63,9 @@ class TestHandwritingSynthesis(unittest.TestCase):
         try:
             self.hand.write(filename='test_output.svg', lines=lines)
             generated = True
+        except tf.errors.OpError as e:
+            print(f"Handwriting generation failed with TensorFlow exception: {e}")
+            generated = False
         except Exception as e:
             print(f"Handwriting generation failed with exception: {e}")
             generated = False

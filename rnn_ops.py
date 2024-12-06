@@ -1,16 +1,5 @@
-from tensorflow.python.framework import constant_op
-from tensorflow.python.framework import dtypes
-from tensorflow.python.framework import ops
-from tensorflow.python.ops import array_ops
-from tensorflow.python.ops import control_flow_ops
-from tensorflow.python.ops import math_ops
-from tensorflow.python.ops import tensor_array_ops
-from tensorflow.python.ops import variable_scope as vs
-from tensorflow.python.ops.rnn_cell_impl import _concat, _like_rnncell
-from tensorflow.python.ops.rnn import _maybe_tensor_shape_from_tensor
-from tensorflow.python.util import nest
-from tensorflow.python.framework import tensor_shape
-from tensorflow.python.eager import context
+import tensorflow as tf
+from tensorflow import nest
 
 
 def raw_rnn(cell, loop_fn, parallel_iterations=None, swap_memory=False, scope=None):
@@ -26,8 +15,8 @@ def raw_rnn(cell, loop_fn, parallel_iterations=None, swap_memory=False, scope=No
         final cell state,
     )
     """
-    if not _like_rnncell(cell):
-        raise TypeError("cell must be an instance of RNNCell")
+    if not isinstance(cell, tf.keras.layers.Layer):
+        raise TypeError("cell must be an instance of tf.keras.layers.Layer")
     if not callable(loop_fn):
         raise TypeError("loop_fn must be a callable")
 
@@ -36,31 +25,18 @@ def raw_rnn(cell, loop_fn, parallel_iterations=None, swap_memory=False, scope=No
     # Create a new scope in which the caching device is either
     # determined by the parent scope, or is set to place the cached
     # Variable using the same placement as for the rest of the RNN.
-    with vs.variable_scope(scope or "rnn") as varscope:
-        if context.in_graph_mode():
-            if varscope.caching_device is None:
-                varscope.set_caching_device(lambda op: op.device)
+    with tf.name_scope(scope or "rnn"):
 
-        time = constant_op.constant(0, dtype=dtypes.int32)
+        time = tf.constant(0, dtype=tf.int32)
         (elements_finished, next_input, initial_state, emit_structure,
          init_loop_state) = loop_fn(time, None, None, None)
         flat_input = nest.flatten(next_input)
 
         # Need a surrogate loop state for the while_loop if none is available.
-        loop_state = (init_loop_state if init_loop_state is not None
-                      else constant_op.constant(0, dtype=dtypes.int32))
+        loop_state = (init_loop_state if init_loop_state is not None else tf.constant(0, dtype=tf.int32))
 
-        input_shape = [input_.get_shape() for input_ in flat_input]
-        static_batch_size = input_shape[0][0]
-
-        for input_shape_i in input_shape:
-            # Static verification that batch sizes all match
-            static_batch_size.merge_with(input_shape_i[0])
-
-        batch_size = static_batch_size.value
+        batch_size = tf.shape(flat_input[0])[0]
         const_batch_size = batch_size
-        if batch_size is None:
-            batch_size = array_ops.shape(flat_input[0])[0]
 
         nest.assert_same_structure(initial_state, cell.state_size)
         state = initial_state
@@ -84,30 +60,28 @@ def raw_rnn(cell, loop_fn, parallel_iterations=None, swap_memory=False, scope=No
         flat_state_dtypes = [s.dtype for s in flat_state]
 
         flat_emit_ta = [
-            tensor_array_ops.TensorArray(
+            tf.TensorArray(
                 dtype=dtype_i,
-                dynamic_size=True,
-                element_shape=(tensor_shape.TensorShape([const_batch_size])
-                               .concatenate(_maybe_tensor_shape_from_tensor(size_i))),
                 size=0,
+                dynamic_size=True,
+                element_shape=tf.TensorShape([const_batch_size]).concatenate(size_i),
                 name="rnn_output_%d" % i
             )
             for i, (dtype_i, size_i) in enumerate(zip(flat_emit_dtypes, flat_emit_size))
         ]
         emit_ta = nest.pack_sequence_as(structure=emit_structure, flat_sequence=flat_emit_ta)
         flat_zero_emit = [
-            array_ops.zeros(_concat(batch_size, size_i), dtype_i)
+            tf.zeros([batch_size] + size_i, dtype=dtype_i)
             for size_i, dtype_i in zip(flat_emit_size, flat_emit_dtypes)]
 
         zero_emit = nest.pack_sequence_as(structure=emit_structure, flat_sequence=flat_zero_emit)
 
         flat_state_ta = [
-            tensor_array_ops.TensorArray(
+            tf.TensorArray(
                 dtype=dtype_i,
-                dynamic_size=True,
-                element_shape=(tensor_shape.TensorShape([const_batch_size])
-                               .concatenate(_maybe_tensor_shape_from_tensor(size_i))),
                 size=0,
+                dynamic_size=True,
+                element_shape=tf.TensorShape([const_batch_size]).concatenate(size_i),
                 name="rnn_state_%d" % i
             )
             for i, (dtype_i, size_i) in enumerate(zip(flat_state_dtypes, flat_state_size))
@@ -115,7 +89,7 @@ def raw_rnn(cell, loop_fn, parallel_iterations=None, swap_memory=False, scope=No
         state_ta = nest.pack_sequence_as(structure=state, flat_sequence=flat_state_ta)
 
         def condition(unused_time, elements_finished, *_):
-            return math_ops.logical_not(math_ops.reduce_all(elements_finished))
+            return tf.logical_not(tf.reduce_all(elements_finished))
 
         def body(time, elements_finished, current_input, state_ta, emit_ta, state, loop_state):
             (next_output, cell_state) = cell(current_input, state)
@@ -227,15 +201,15 @@ def rnn_free_run(cell, initial_state, sequence_length, initial_input=None, scope
     def loop_fn(time, cell_output, cell_state, loop_state):
         next_cell_state = initial_state if cell_output is None else cell_state
 
-        elements_finished = math_ops.logical_or(
+        elements_finished = tf.logical_or(
             time >= sequence_length,
             cell.termination_condition(next_cell_state)
         )
-        finished = math_ops.reduce_all(elements_finished)
+        finished = tf.reduce_all(elements_finished)
 
-        next_input = control_flow_ops.cond(
+        next_input = tf.cond(
             finished,
-            lambda: array_ops.zeros_like(initial_input),
+            lambda: tf.zeros_like(initial_input),
             lambda: initial_input if cell_output is None else cell.output_function(next_cell_state)
         )
         emit_output = next_input[0] if cell_output is None else next_input

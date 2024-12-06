@@ -1,7 +1,7 @@
 from collections import namedtuple
 
 import tensorflow as tf
-import tensorflow.contrib.distributions as tfd
+import tensorflow_probability as tfp
 import numpy as np
 
 from tf_utils import dense_layer, shape
@@ -13,7 +13,7 @@ LSTMAttentionCellState = namedtuple(
 )
 
 
-class LSTMAttentionCell(tf.nn.rnn_cell.RNNCell):
+class LSTMAttentionCell(tf.keras.layers.Layer):
 
     def __init__(
         self,
@@ -73,11 +73,11 @@ class LSTMAttentionCell(tf.nn.rnn_cell.RNNCell):
         )
 
     def __call__(self, inputs, state, scope=None):
-        with tf.variable_scope(scope or type(self).__name__, reuse=tf.AUTO_REUSE):
+        with tf.name_scope(scope or type(self).__name__):
 
             # lstm 1
             s1_in = tf.concat([state.w, inputs], axis=1)
-            cell1 = tf.contrib.rnn.LSTMCell(self.lstm_size)
+            cell1 = tf.keras.layers.LSTMCell(self.lstm_size)
             s1_out, s1_state = cell1(s1_in, state=(state.c1, state.h1))
 
             # attention
@@ -101,12 +101,12 @@ class LSTMAttentionCell(tf.nn.rnn_cell.RNNCell):
 
             # lstm 2
             s2_in = tf.concat([inputs, s1_out, w], axis=1)
-            cell2 = tf.contrib.rnn.LSTMCell(self.lstm_size)
+            cell2 = tf.keras.layers.LSTMCell(self.lstm_size)
             s2_out, s2_state = cell2(s2_in, state=(state.c2, state.h2))
 
             # lstm 3
             s3_in = tf.concat([inputs, s2_out, w], axis=1)
-            cell3 = tf.contrib.rnn.LSTMCell(self.lstm_size)
+            cell3 = tf.keras.layers.LSTMCell(self.lstm_size)
             s3_out, s3_state = cell3(s3_in, state=(state.c3, state.h3))
 
             new_state = LSTMAttentionCellState(
@@ -137,9 +137,9 @@ class LSTMAttentionCell(tf.nn.rnn_cell.RNNCell):
         covar_matrix = tf.stack(covar_matrix, axis=2)
         covar_matrix = tf.reshape(covar_matrix, (self.batch_size, self.num_output_mixture_components, 2, 2))
 
-        mvn = tfd.MultivariateNormalFullCovariance(loc=mus, covariance_matrix=covar_matrix)
-        b = tfd.Bernoulli(probs=es)
-        c = tfd.Categorical(probs=pis)
+        mvn = tfp.distributions.MultivariateNormalFullCovariance(loc=mus, covariance_matrix=covar_matrix)
+        b = tfp.distributions.Bernoulli(probs=es)
+        c = tfp.distributions.Categorical(probs=pis)
 
         sampled_e = b.sample()
         sampled_coords = mvn.sample()
