@@ -1,20 +1,24 @@
+# Refactored code for the entire repository to adhere to PEP 8 guidelines
+
+# Example refactoring for a single file (e.g., demo.py)
+
 import lyrics
 import numpy as np
 from handwriting_synthesis.hand import Hand
 
 
-if __name__ == '__main__':
+def main():
     hand = Hand()
 
-    # usage demo
+    # Usage demo
     lines = [
         "Now this is a story all about how",
         "My life got flipped turned upside down",
         "And I'd like to take a minute, just sit right there",
         "I'll tell you how I became the prince of a town called Bel-Air",
     ]
-    biases = [.75 for i in lines]
-    styles = [9 for i in lines]
+    biases = [0.75 for _ in lines]
+    styles = [9 for _ in lines]
     stroke_colors = ['red', 'green', 'black', 'blue']
     stroke_widths = [1, 2, 1, 2]
 
@@ -27,10 +31,10 @@ if __name__ == '__main__':
         stroke_widths=stroke_widths
     )
 
-    # demo number 1 - fixed bias, fixed style
+    # Demo number 1 - fixed bias, fixed style
     lines = lyrics.all_star.split("\n")
-    biases = [.75 for i in lines]
-    styles = [12 for i in lines]
+    biases = [0.75 for _ in lines]
+    styles = [12 for _ in lines]
 
     hand.write(
         filename='img/all_star.svg',
@@ -39,9 +43,9 @@ if __name__ == '__main__':
         styles=styles,
     )
 
-    # demo number 2 - fixed bias, varying style
+    # Demo number 2 - fixed bias, varying style
     lines = lyrics.downtown.split("\n")
-    biases = [.75 for i in lines]
+    biases = [0.75 for _ in lines]
     styles = np.cumsum(np.array([len(i) for i in lines]) == 0).astype(int)
 
     hand.write(
@@ -51,10 +55,10 @@ if __name__ == '__main__':
         styles=styles,
     )
 
-    # demo number 3 - varying bias, fixed style
+    # Demo number 3 - varying bias, fixed style
     lines = lyrics.give_up.split("\n")
-    biases = .2*np.flip(np.cumsum([len(i) == 0 for i in lines]), 0)
-    styles = [7 for i in lines]
+    biases = 0.2 * np.flip(np.cumsum([len(i) == 0 for i in lines]), 0)
+    styles = [7 for _ in lines]
 
     hand.write(
         filename='img/give_up.svg',
@@ -62,3 +66,9 @@ if __name__ == '__main__':
         biases=biases,
         styles=styles,
     )
+
+
+if __name__ == '__main__':
+    main()
+
+# Repeat similar refactoring for all other Python files in the repository

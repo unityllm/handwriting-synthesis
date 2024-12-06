@@ -98,7 +98,7 @@ def collect_data():
     return stroke_fnames, transcriptions, writer_ids
 
 
-if __name__ == '__main__':
+def main():
     print('traversing data directory...')
     stroke_fnames, transcriptions, writer_ids = collect_data()
 
@@ -112,7 +112,7 @@ if __name__ == '__main__':
 
     for i, (stroke_fname, c_i, w_id_i) in enumerate(zip(stroke_fnames, transcriptions, writer_ids)):
         if i % 200 == 0:
-            print(i, '\t', '/', len(stroke_fnames))
+            print(i, '	', '/', len(stroke_fnames))
         x_i = get_stroke_sequence(stroke_fname)
         valid_mask[i] = ~np.any(np.linalg.norm(x_i[:, :2], axis=1) > 60)
 
@@ -132,3 +132,6 @@ if __name__ == '__main__':
     np.save('data/processed/c.npy', c[valid_mask])
     np.save('data/processed/c_len.npy', c_len[valid_mask])
     np.save('data/processed/w_id.npy', w_id[valid_mask])
+
+if __name__ == '__main__':
+    main()
