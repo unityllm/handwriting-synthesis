@@ -3,6 +3,6 @@ pandas>= 0.22.0
 scikit-learn>=0.19.1
 scipy>=1.0.0
 svgwrite>=1.1.12
-tensorflow==2.5.0
+tensorflow==2.8.0
 gradio
 # Add any additional dependencies here
